@@ -1,0 +1,314 @@
+<!-- <?php
+session_start();
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// require 'PHPMailer-master/src/PHPMailer.php';
+// require 'PHPMailer-master/src/SMTP.php';
+// require 'PHPMailer-master/src/Exception.php';
+
+require '/opt/lampp/htdocs/TCS/PHPMailer-master/src/PHPMailer.php';
+require '/opt/lampp/htdocs/TCS/PHPMailer-master/src/SMTP.php';
+require '/opt/lampp/htdocs/TCS/PHPMailer-master/src/Exception.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $name = $_POST['name'];
+  $email = $_POST['email'];
+  $password = $_POST['password'];
+
+  $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+  include('config.php');
+
+  // Establish a database connection using the constants from config.php
+  $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+  if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+  }
+
+  $token = bin2hex(random_bytes(16));
+
+  // Check if the user already exists
+  $sql = "SELECT * FROM users WHERE email = ?";
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("s", $email);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  if ($result->num_rows > 0) {
+    // User already exists
+    $error = "User already exists";
+  } else {
+    // Insert the new user into the database
+    $sql = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sss", $name, $email, $hashedPassword);
+
+    if ($stmt->execute()) {
+      // User created successfully
+      $_SESSION['id'] = $stmt->insert_id;
+      $stmt->close();
+
+      // ... (your email verification code remains unchanged)
+      // Function to generate a random 6-digit OTP
+      function generateOTP()
+      {
+        $otp = "";
+        for ($i = 0; $i < 6; $i++) {
+          $otp .= mt_rand(0, 9);
+        }
+        return $otp;
+      }
+
+      // Retrieve the recipient email from the form
+      $recipientEmail = $_POST['email'];
+
+      // Generate OTP
+      $otp = generateOTP();
+
+      // Initialize PHPMailer
+      $mail = new PHPMailer();
+
+      // SMTP configuration
+      $mail->isSMTP();
+      $mail->Host = 'smtp.gmail.com';
+      $mail->Port = 587;
+      $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+      $mail->SMTPAuth = true;
+      $mail->Username = 'srisinhasumit10@gmail.com'; // Your Gmail email address
+      $mail->Password = 'ggtbu6832djfieofjfdmqcohr7adferjnbu4w8jyd'; // Your Gmail password
+
+      // Sender and recipient
+      $mail->setFrom('your@gmail.com', 'Test'); // Sender email and name
+      $mail->addAddress($recipientEmail); // Recipient email
+
+      // Save the OTP in the database
+      $sql = "UPDATE users SET otp = '$otp' WHERE email = '$recipientEmail'";
+
+      if ($conn->query($sql) === TRUE) {
+        // Send email
+        $mail->isHTML(true);
+        $mail->Subject = 'OTP Verification';
+        $mail->Body = 'Your OTP for account verification is: ' . $otp;
+
+        if ($mail->send()) {
+          // Redirect to OTP verification page
+          header('Location: otp_verification.php?email=' . $recipientEmail);
+          exit();
+        } else {
+          $error = 'Error sending email: ' . $mail->ErrorInfo;
+        }
+      } else {
+        $error = 'Error updating OTP: ' . $conn->error;
+      }
+    } else {
+      // Failed to create user
+      $error = "Failed to create user: " . $stmt->error;
+    }
+  }
+
+  // $stmt->close(); // Close the statement
+  // $conn->close(); // Close the database connection
+}
+?> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <style>
+           body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .signup-container {
+            max-width: 400px;
+            max-height: 600px;
+            height: 100%;
+            width: 100%;
+            padding: 25px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        input {
+            margin-top: 15px;
+            margin-bottom: 15px;
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 16px;
+            box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+        }
+
+        #password-error {
+            color: red;
+        }
+
+        .signup-button {
+            margin-top: 30px;
+            background-color: #4caf50;
+            color: #fff;
+            padding: 10px 35px;
+            border: none;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+        }
+
+        .log {
+            margin-top: 20px;
+            font-size: 15px;
+            color: #000000;
+        }
+
+        .log a {
+            color: #1f1d1d;
+            text-decoration: underline;
+        }
+
+        .log a:hover {
+            color: #000000;
+        }
+
+        footer {
+            color: #000000;
+            font-size: 13px;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        @media only screen and (max-width: 600px) {
+
+            .signup-container {
+                padding: 18px;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <div class="nav">
+        <header>
+            <a href="index.html"><img src="logo.png" alt="Logo" /></a>
+        </header>
+    </div> -->
+    <section>
+        <div class="signup-container">
+            <div id="loaderOverlay">
+                <div id="loader" class="loader"></div>
+            </div>
+            <h2>Signup</h2>
+            <form method="POST">
+                <?php if (isset($error)) { ?>
+                <p class="error-msg">
+                    <?php echo $error; ?>
+                </p>
+                <?php } ?>
+                <div class="input-box full-name">
+                    <!-- <label for="name">Name</label> -->
+                    <input type="text" id="name" name="name" placeholder="Enter Your Name" required>
+                </div>
+                <div class="input-box email">
+                    <!-- <label for="email">Email</label> -->
+                    <input type="email" id="email" name="email" placeholder="Enter Your Email" required>
+                </div>
+                <div class="input-box username">
+                    <!-- <label for="username">Username</label> -->
+                    <input type="text" id="username" name="username" placeholder="Create a Username" required>
+                </div>
+                <div class="input-box password">
+                    <!-- <label for="password">Password</label> -->
+                    <input type="password" id="password" name="password" placeholder="Enter Your Password" required
+                        maxlength="8">
+                </div>
+                <div class="input-box confirmpassword">
+                    <!-- <label for="confirmpassword">Confirm Password</label> -->
+                    <input type="password" id="confirmpassword" name="confirmpassword"
+                        placeholder="Confirm Your Password" required maxlength="8">
+                </div>
+                <p id="password-error"></p>
+
+                <button type="submit" id="submit" name="signup" class="signup-button">Signup</button>
+
+                <div class="log">
+                    <h4>Already have an account?
+                        <a href="login.html">SignIn</a>
+                    </h4>
+                </div>
+            </form>
+        </div>
+        <footer>
+            <p>Created by Sumit Srivastava</p>
+            <p>T&C © 2024 DeathPlay. All rights reserved.
+            </p>
+        </footer>
+    </section>
+    <script>
+        // Get references to the password and confirm password input fields
+        const passwordInput = document.getElementById("password");
+        const confirmPasswordInput = document.getElementById("confirmpassword");
+
+        // Get references to the error message element and submit button
+        const passwordError = document.getElementById("password-error");
+        const submitButton = document.getElementById("submit");
+
+        // Add an input event listener to the confirm password field
+        confirmPasswordInput.addEventListener("input", function () {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            // Compare the passwords
+            if (password === confirmPassword) {
+                // Passwords match, clear the error message
+                passwordError.textContent = "";
+                submitButton.disabled = false; // Enable the submit button
+            } else {
+                // Passwords don't match, display an error message
+                passwordError.textContent = "Passwords do not match!";
+                submitButton.disabled = true; // Disable the submit button
+            }
+        });
+
+        const submit = document.getElementById('submit');
+        const emailField = document.getElementById('email');
+        const loaderOverlay = document.getElementById('loaderOverlay');
+
+        submit.addEventListener('click', function () {
+            const emailValue = emailField.value.trim();
+
+            if (emailField.checkValidity()) {
+                loaderOverlay.style.display = 'block'; // Show overlay
+
+                // Simulate asynchronous task (e.g., AJAX request)
+                setTimeout(function () { }, 2000); // Simulated delay of 2 seconds
+            } else {
+                emailField.reportValidity();
+            }
+        });
+    </script>
+</body>
+
+</html>

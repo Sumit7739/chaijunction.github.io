@@ -1,0 +1,176 @@
+<!-- <?php
+session_start();
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+// Check if user is already authenticated, redirect to admin page
+if (isset($_SESSION['id'])) {
+  header("Location: dataentry.html");
+  exit();
+}
+
+// Check if the form was submitted
+if (isset($_POST['submit'])) {
+  $email = $_POST['email'];
+  $password = $_POST['password'];
+
+  include('config.php');
+
+  // Establish a database connection using the constants from config.php
+  $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+  if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+  }
+
+  // Prepare and execute a SQL query to retrieve user data
+  $sql = "SELECT * FROM users WHERE email = ?";
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("s", $email);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  if ($result->num_rows > 0) {
+    // User found, check the password
+    $row = $result->fetch_assoc();
+    $storedPassword = $row['password'];
+    $verificationStatus = $row['verification_status'];
+
+    if ($verificationStatus == 0) {
+      // Redirect to a particular page when verification_status is 0
+      header('Location: otp_verification.php?email=' . $email);
+      exit();
+    }
+
+    // Verify the hashed password
+    if (password_verify($password, $storedPassword)) {
+      // Password is correct, login successful
+      $_SESSION['id'] = $row['id'];
+      $stmt->close();
+      $conn->close();
+      header("Location: home.html"); // Redirect to the success page
+      exit();
+    } else {
+      // Invalid password
+      $error = "Incorrect password";
+    }
+  } else {
+    // User not found
+    $error = "User not found";
+  }
+
+  $stmt->close(); // Close the statement
+  $conn->close(); // Close the database connection
+}
+?> -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            max-width: 350px;
+            max-height: 500px;
+            height: 90%;
+            width: 90%;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .email,
+        .password {
+            margin-bottom: 10px;
+        }
+
+        label {
+            margin-top: 10px;
+            display: block;
+            font-size: 18px;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input {
+            margin-top: 10px;
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 16px;
+            box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+        }
+
+        .login-button {
+            margin-top: 30px;
+            background-color: #0069af;
+            color: #fff;
+            padding: 10px 35px;
+            border: none;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+        }
+
+        .forgot-password {
+            position: relative;
+            margin-top: 30px;
+            display: inline-block;
+            font-size: 15px;
+            color: #777;
+            cursor: pointer;
+            margin-right: 20px;
+            margin-left: 20px;
+        }
+
+        .forgot-password:hover{
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <!-- <div class="logo">
+            <img src="your-logo.png" alt="Logo" width="50">
+        </div> -->
+<h1>Welcome Back</h1>
+        <div class="email">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" placeholder="Enter your email">
+        </div>
+
+        <div class="password">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter your password">
+        </div>
+
+        <div class="btn">
+            <button class="login-button">Login</button>
+        </div>
+
+        <div class="footer">
+            <div class="forgot-password">Forgot Password?</div>
+            <div class="forgot-password">Create Account</div>
+        </div>
+    </div>
+</body>
+
+</html>
