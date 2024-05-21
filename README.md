@@ -48,4 +48,4 @@ The core of this project lies in the Minimax algorithm, a powerful technique for
 
 While the AI in this project aims to be unbeatable, there's always the possibility of bugs or unforeseen circumstances. If you manage to find a way to win against the AI, please share your insights as it can help improve the algorithm's effectiveness!
 
-This README file provides a detailed overview of your project, explaining its functionality, technology stack, and the underlying Minimax algorithm. It also suggests potential enhancements and acknowledges the ongoing challenge of creating a truly unbeatable AI.
+**Thank You for Playing!**
