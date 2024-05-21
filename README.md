@@ -12,12 +12,13 @@ This project implements a Tic Tac Toe game with an unbeatable AI opponent built 
 
 **How to Play:**
 
-Clone this repository.
-Visit the following link to play the game in your web browser: https://sumit7739.github.io/tiktactoe.github.io/ 
-Choose your symbol (X or O) from the prompt.
-Click on an empty square on the board to make your move.
-The AI will calculate its best move and place its symbol automatically.
-The game continues until either a player wins, the board is full (resulting in a draw), or an error occurs.
+1. Visit the following link to play the game in your web browser: https://sumit7739.github.io/tiktactoe.github.io/ 
+2. Clone this repository.
+3. Open the index.html file in your web browser.
+4. Choose your symbol (X or O) from the prompt.
+5. Click on an empty square on the board to make your move.
+6. The AI will calculate its best move and place its symbol automatically.
+7. The game continues until either a player wins, the board is full (resulting in a draw), or an error occurs.
 
 **Technologies Used:**
 
